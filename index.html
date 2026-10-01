@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Craving Swapper - Everyday Problem, Smart Solution</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        amber: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Glassmorphism styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="no-print sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                    <i class="fa-solid fa-apple-whole text-xl"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-700">CravingSwapper</span>
+                    <span class="hidden sm:inline-block ml-2 text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 font-semibold rounded-full border border-emerald-200">Hackathon Edition</span>
+                </div>
+            </div>
+
+            <!-- API Status & Key Modal Trigger -->
+            <div class="flex items-center gap-3">
+                <button id="apiStatusBadge" onclick="openKeyModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all shadow-xs">
+                    <span id="apiStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="apiStatusText">Engine Active</span>
+                    <i class="fa-solid fa-gear text-slate-400 hover:text-slate-600 transition-colors"></i>
+                </button>
+                <button onclick="toggleSavedDrawer()" class="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i class="fa-solid fa-bookmark text-lg"></i>
+                    <span id="savedCountBadge" class="absolute -top-1 -right-1 bg-emerald-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero & Search Section -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div class="text-center max-w-3xl mx-auto mb-10 no-print">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold mb-4">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Everyday Problem, Smart Solution
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Turn Unhealthy Cravings Into <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">Smart Delicious Swaps</span>
+            </h1>
+            <p class="mt-4 text-slate-600 text-base sm:text-lg">
+                Enter any junk food you're craving right now. Our AI smart engine formulates a healthy, quick, and mouthwatering alternative tailored to your dietary goals!
+            </p>
+        </div>
+
+        <!-- Main Input Form & Preset Chips -->
+        <div class="max-w-3xl mx-auto mb-12 no-print">
+            <div class="glass-card rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-200/60 relative">
+                <form id="swapForm" onsubmit="handleCravingSubmit(event)" class="space-y-4">
+                    <!-- Text Input Field -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-utensils text-lg"></i>
+                        </div>
+                        <input type="text" id="cravingInput" required
+                            class="w-full pl-12 pr-32 py-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 placeholder-slate-400 font-medium text-base sm:text-lg shadow-inner outline-none transition-all"
+                            placeholder="e.g., Pepperoni Pizza, Chocolate Donuts, Loaded Fries..." />
+                        <button type="submit" id="submitBtn"
+                            class="absolute right-2 top-2 bottom-2 px-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-lg shadow-md transition-all flex items-center gap-2 group">
+                            <span>Swap</span>
+                            <i class="fa-solid fa-bolt group-hover:scale-110 transition-transform"></i>
+                        </button>
+                    </div>
+
+                    <!-- Dietary Preference Filters -->
+                    <div class="pt-2">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-sliders text-emerald-600"></i> Dietary Preferences & Filters
+                            </label>
+                            <span class="text-xs text-slate-400">(Optional)</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2" id="filterContainer">
+                            <button type="button" data-filter="vegan" onclick="toggleFilter(this)" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-600 hover:border-emerald-400 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-seedling text-emerald-500"></i> Vegan
+                            </button>
+                            <button type="button" data-filter="glutenFree" onclick="toggleFilter(this)" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-600 hover:border-emerald-400 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-wheat-awn-circle-exclamation text-amber-500"></i> Gluten-Free
+                            </button>
+                            <button type="button" data-filter="highProtein" onclick="toggleFilter(this)" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-600 hover:border-emerald-400 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-dumbbell text-blue-500"></i> High-Protein
+                            </button>
+                            <button type="button" data-filter="lowCalorie" onclick="toggleFilter(this)" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-600 hover:border-emerald-400 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-fire text-red-500"></i> Low-Calorie
+                            </button>
+                            <button type="button" data-filter="quick" onclick="toggleFilter(this)" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 bg-white text-slate-600 hover:border-emerald-400 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-stopwatch text-purple-500"></i> Quick (&lt;15 mins)
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Quick Craving Preset Tag Chips -->
+                <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-400 mr-1">Popular Cravings:</span>
+                    <button onclick="setQuickCraving('Potato Chips')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs rounded-full transition-colors flex items-center gap-1">
+                        🍟 Potato Chips
+                    </button>
+                    <button onclick="setQuickCraving('Pepperoni Pizza')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs rounded-full transition-colors flex items-center gap-1">
+                        🍕 Pepperoni Pizza
+                    </button>
+                    <button onclick="setQuickCraving('Chocolate Milkshake')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs rounded-full transition-colors flex items-center gap-1">
+                        🥤 Chocolate Milkshake
+                    </button>
+                    <button onclick="setQuickCraving('Glazed Donuts')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs rounded-full transition-colors flex items-center gap-1">
+                        🍩 Donuts
+                    </button>
+                    <button onclick="setQuickCraving('Ice Cream Sundae')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs rounded-full transition-colors flex items-center gap-1">
+                        🍨 Ice Cream
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner Container -->
+        <div id="loadingState" class="hidden max-w-xl mx-auto py-12 text-center">
+            <div class="relative w-20 h-20 mx-auto mb-6">
+                <div class="absolute inset-0 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin"></div>
+                <div class="absolute inset-2 rounded-full border-4 border-teal-100 border-b-teal-500 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-emerald-600 text-xl">
+                    <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Analyzing Craving & Preparing Recipe...</h3>
+            <p id="loadingTip" class="text-sm text-slate-500 italic max-w-md mx-auto">"Matching texture, flavor notes, and crunch levels..."</p>
+        </div>
+
+        <!-- Main Result Container -->
+        <div id="resultContainer" class="hidden max-w-4xl mx-auto space-y-6">
+            <!-- Swap Overview Banner Card -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <!-- Background decorative glow -->
+                <div class="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="space-y-3">
+                        <div class="flex flex-wrap items-center gap-2 no-print">
+                            <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold rounded-full flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check"></i> Smart Swap Found
+                            </span>
+                            <span id="sourceTag" class="px-3 py-1 bg-slate-700/60 text-slate-300 text-xs font-medium rounded-full">
+                                AI Generated
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 text-slate-400 text-sm">
+                            <span class="line-through flex items-center gap-1"><i class="fa-solid fa-xmark text-red-400"></i> Craving: <strong id="cravingDisplay" class="text-slate-300 font-semibold">Potato Chips</strong></span>
+                        </div>
+                        <h2 id="swapTitle" class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+                            Crispy Air-Fryer Zucchini Chips
+                        </h2>
+                        <p id="flavorMatch" class="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+                            Delivers the exact salty crunch and savory bite you're craving with 80% fewer calories!
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex md:flex-col gap-2 no-print shrink-0">
+                        <button onclick="saveCurrentRecipe()" id="bookmarkBtn" class="flex-1 sm:flex-none px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold backdrop-blur-md border border-white/10 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bookmark"></i> <span id="saveBtnText">Save Recipe</span>
+                        </button>
+                        <button onclick="window.print()" class="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-print"></i> Print Recipe
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Bar -->
+                <div class="mt-8 pt-6 border-t border-slate-700/60 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/40">
+                        <span class="text-xs text-slate-400 block font-medium">Prep Time</span>
+                        <span id="prepTime" class="text-lg font-bold text-emerald-400">10 mins</span>
+                    </div>
+                    <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/40">
+                        <span class="text-xs text-slate-400 block font-medium">Cook Time</span>
+                        <span id="cookTime" class="text-lg font-bold text-emerald-400">12 mins</span>
+                    </div>
+                    <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/40">
+                        <span class="text-xs text-slate-400 block font-medium">Health Rating</span>
+                        <span id="nutriBadge" class="inline-flex items-center gap-1 text-lg font-black text-amber-400">
+                            A+ Grade
+                        </span>
+                    </div>
+                    <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/40">
+                        <span class="text-xs text-slate-400 block font-medium">Craving Match</span>
+                        <span id="matchPercentage" class="text-lg font-bold text-emerald-400">95% Match</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabbed Recipe Detail Section -->
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+                <!-- Navigation Tabs -->
+                <div class="border-b border-slate-200 bg-slate-50/50 p-2 flex gap-2 no-print">
+                    <button onclick="switchTab('benefits')" id="tab-benefits" class="tab-btn flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all text-emerald-700 bg-white shadow-xs border border-slate-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-heart-pulse text-emerald-600"></i> Benefits & Comparison
+                    </button>
+                    <button onclick="switchTab('ingredients')" id="tab-ingredients" class="tab-btn flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:bg-white/60 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-basket-shopping text-emerald-600"></i> Ingredients
+                    </button>
+                    <button onclick="switchTab('instructions')" id="tab-instructions" class="tab-btn flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:bg-white/60 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-kitchen-set text-emerald-600"></i> Cooking Guide
+                    </button>
+                </div>
+
+                <!-- Tab 1: Benefits & Comparison -->
+                <div id="panel-benefits" class="tab-panel p-6 sm:p-8 space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-600"></i> Why This Swap Works Wonders
+                        </h3>
+                        <div id="benefitsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Smart Pro-Tip Box -->
+                    <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200/80 flex items-start gap-3">
+                        <div class="p-2 bg-emerald-500 text-white rounded-xl shrink-0 mt-0.5">
+                            <i class="fa-solid fa-lightbulb"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-emerald-900 uppercase tracking-wide">Smart Hack Pro-Tip</h4>
+                            <p id="proTip" class="text-sm text-emerald-800 mt-0.5 font-medium">
+                                Bake zuchinni on parchment paper for extra crispness without using extra oil!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Ingredients -->
+                <div id="panel-ingredients" class="tab-panel hidden p-6 sm:p-8">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center justify-between">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-600"></i> What You'll Need</span>
+                        <span id="ingredientCount" class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">5 Items</span>
+                    </h3>
+                    <ul id="ingredientsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Injected dynamically -->
+                    </ul>
+                </div>
+
+                <!-- Tab 3: Cooking Instructions -->
+                <div id="panel-instructions" class="tab-panel hidden p-6 sm:p-8">
+                    <h3 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-fire-burner text-emerald-600"></i> Step-by-Step Cooking Guide
+                    </h3>
+                    <div id="instructionsList" class="space-y-4">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Saved Recipes Slide-over Drawer -->
+    <div id="savedDrawer" class="fixed inset-0 z-50 overflow-hidden hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onclick="toggleSavedDrawer()"></div>
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-bookmark text-emerald-600"></i> Saved Swaps
+                    </h2>
+                    <button onclick="toggleSavedDrawer()" class="text-slate-400 hover:text-slate-600">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+                <div id="savedList" class="flex-grow overflow-y-auto p-6 space-y-4">
+                    <!-- Saved items loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Settings Modal -->
+    <div id="keyModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeKeyModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-100">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-key text-emerald-600"></i> Gemini API Settings
+                        </h3>
+                        <button onclick="closeKeyModal()" class="text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                        The app includes a built-in Gemini API prompt engine and a robust offline fallback engine for hackathon demos. You can enter your custom free Gemini API key below to enable real-time generative responses.
+                    </p>
+                    <div class="space-y-3">
+                        <label class="block text-xs font-bold text-slate-700 uppercase">Custom Gemini API Key</label>
+                        <input type="password" id="customApiKeyInput" placeholder="AIzaSy..." 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono" />
+                        <p class="text-[11px] text-slate-400">Key is stored safely in your browser session.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-6 py-4 flex justify-between items-center border-t border-slate-100">
+                    <button onclick="clearCustomKey()" class="text-xs font-semibold text-red-600 hover:underline">Reset to Built-in/Mock</button>
+                    <div class="flex gap-2">
+                        <button onclick="closeKeyModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-lg">Cancel</button>
+                        <button onclick="saveCustomKey()" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm">Save Key</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====================================================================
+        // CONST GEMINI API KEY (Declare top of script as requested)
+        // ====================================================================
+        const GEMINI_API_KEY = ""; 
+
+        // State Variables
+        let currentRecipe = null;
+        let activeFilters = new Set();
+        let savedRecipes = JSON.parse(localStorage.getItem('craving_swaps') || '[]');
+
+        // Rich Fallback Dictionary for Popular Junk Foods (Ensures Hackathon Demos Work 100% Offline)
+        const MOCK_SWAPS_DATABASE = {
+            "potato chips": {
+                swapName: "Air-Fryer Crispy Zucchini Chips",
+                cravingMatch: "Salty, crunchy, savory potato chip crave",
+                prepTime: "10 mins",
+                cookTime: "12 mins",
+                nutriGrade: "A+ Grade",
+                matchPercent: "96%",
+                benefits: [
+                    { title: "82% Fewer Calories", desc: "Zucchini replaces high-starch potatoes, keeping carbs super low." },
+                    { title: "Zero Trans Fats", desc: "Baked or air-fried with a mist of heart-healthy olive oil." },
+                    { title: "Rich in Potassium", desc: "Supports blood pressure health while satisfying sodium cravings." },
+                    { title: "High Fiber Content", desc: "Keeps you full without the post-chip slump." }
+                ],
+                ingredients: [
+                    "2 medium zucchini, thinly sliced into rounds",
+                    "1 tbsp extra virgin olive oil",
+                    "1/2 tsp sea salt or Himalayan pink salt",
+                    "1/2 tsp garlic powder & smoked paprika",
+                    "1 tbsp nutritional yeast (optional for cheesy flavor)"
+                ],
+                instructions: [
+                    "Slice zucchinis thinly using a mandoline or sharp chef knife.",
+                    "Pat zucchini rounds dry using paper towels to remove excess moisture.",
+                    "Toss rounds in a bowl with olive oil, sea salt, garlic powder, and smoked paprika.",
+                    "Arrange in a single layer in air fryer basket at 350°F (175°C).",
+                    "Air fry for 10-12 minutes, flipping halfway until golden and crisp. Let cool 2 minutes to crisp up further!"
+                ],
+                proTip: "Patting the zucchini dry before cooking is the secret to achieving chip-like crunch without soggy centers!"
+            },
+            "pepperoni pizza": {
+                swapName: "Crispy Cauliflower Crust Margherita Pizza",
+                cravingMatch: "Gooey melted cheese, savory marinara, and crispy pizza crust",
+                prepTime: "15 mins",
+                cookTime: "18 mins",
+                nutriGrade: "A Grade",
+                matchPercent: "92%",
+                benefits: [
+                    { title: "Low-Carb & Gluten Free", desc: "Cauliflower base delivers authentic crust bite without refined flour." },
+                    { title: "High Protein", desc: "Packed with real mozzarella and egg whites in the crust." },
+                    { title: "Lycopene Rich", desc: "Warm marinara sauce delivers antioxidant support." },
+                    { title: "Reduced Saturated Fat", desc: "Turkey pepperoni or fresh basil toppings reduce heavy oils." }
+                ],
+                ingredients: [
+                    "1 premade cauliflower pizza crust (or tortilla for ultra quick wrap-pizza)",
+                    "1/3 cup low-sodium marinara sauce",
+                    "1/2 cup part-skim shredded mozzarella cheese",
+                    "6-8 turkey pepperoni slices or fresh basil leaves",
+                    "1/2 tsp Italian seasoning & red pepper flakes"
+                ],
+                instructions: [
+                    "Preheat oven or toaster oven to 425°F (220°C).",
+                    "Pre-bake the cauliflower crust for 5 minutes until sturdy.",
+                    "Spread marinara sauce evenly over crust, leaving 1/2 inch border.",
+                    "Top with mozzarella, turkey pepperoni, and Italian seasoning.",
+                    "Bake for 8-10 minutes until cheese is bubbly and crust edges are golden brown."
+                ],
+                proTip: "Use a pizza stone or preheated baking sheet to get a crisp bottom crust just like brick-oven pizza!"
+            },
+            "chocolate milkshake": {
+                swapName: "Creamy Chocolate Avocado-Banana Smoothie",
+                cravingMatch: "Thick, rich, decadent chocolate dessert craving",
+                prepTime: "5 mins",
+                cookTime: "0 mins",
+                nutriGrade: "A+ Grade",
+                matchPercent: "98%",
+                benefits: [
+                    { title: "Zero Added Refined Sugars", desc: "Naturally sweetened by ripe frozen banana." },
+                    { title: "Heart-Healthy Fats", desc: "Avocado creates a velvety thick milkshake texture naturally." },
+                    { title: "Magnesium Boost", desc: "Unsweetened cacao powder promotes muscle relaxation and mood." },
+                    { title: "High Plant Protein", desc: "Add a scoop of chocolate plant protein for muscle recovery." }
+                ],
+                ingredients: [
+                    "1 ripe frozen banana",
+                    "1/4 ripe avocado",
+                    "1.5 cups unsweetened almond or oat milk",
+                    "2 tbsp dark unsweetened cacao powder",
+                    "1 tbsp chia seeds or almond butter"
+                ],
+                instructions: [
+                    "Add frozen banana, avocado, almond milk, cacao powder, and almond butter into a high-speed blender.",
+                    "Blend on high for 45-60 seconds until completely smooth and thick.",
+                    "Pour into a chilled glass and top with a sprinkle of cacao nibs."
+                ],
+                proTip: "Freezing your bananas in chunks ahead of time gives the exact consistency of soft-serve ice cream!"
+            },
+            "ice cream": {
+                swapName: "Frozen Banana 'Nice Cream' with Dark Chocolate",
+                cravingMatch: "Cold, sweet, creamy spoonfuls on a warm day",
+                prepTime: "5 mins",
+                cookTime: "0 mins",
+                nutriGrade: "A+ Grade",
+                matchPercent: "95%",
+                benefits: [
+                    { title: "100% Fruit Base", desc: "No heavy creams, artificial syrups, or stabilizers." },
+                    { title: "Electrolyte Rich", desc: "High potassium content combats muscle cramps and bloating." },
+                    { title: "Dairy-Free Friendly", desc: "Naturally vegan and gentle on sensitive stomachs." },
+                    { title: "Low Glycemic Impact", desc: "Sustained natural energy without sugar spikes." }
+                ],
+                ingredients: [
+                    "2 sliced frozen bananas",
+                    "1 tbsp unsweetened almond milk",
+                    "1/2 tsp vanilla extract",
+                    "1 tbsp dark chocolate chips (70%+ cacao)"
+                ],
+                instructions: [
+                    "Place frozen banana slices and vanilla extract into a food processor or blender.",
+                    "Pulse initial chunks, then blend continuously, adding almond milk 1 tsp at a time as needed.",
+                    "Watch it transform from crumbly banana into ultra-smooth ice cream consistency.",
+                    "Fold in dark chocolate chips and serve immediately!"
+                ],
+                proTip: "Blend with 1 tbsp of peanut butter for a creamy peanut butter cup flavor clone!"
+            }
+        };
+
+        // UI Navigation & Modal Handlers
+        document.addEventListener("DOMContentLoaded", () => {
+            updateApiBadge();
+            updateSavedBadge();
+        });
+
+        function openKeyModal() {
+            document.getElementById('keyModal').classList.remove('hidden');
+            document.getElementById('customApiKeyInput').value = localStorage.getItem('user_gemini_key') || '';
+        }
+
+        function closeKeyModal() {
+            document.getElementById('keyModal').classList.add('hidden');
+        }
+
+        function saveCustomKey() {
+            const key = document.getElementById('customApiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('user_gemini_key', key);
+            } else {
+                localStorage.removeItem('user_gemini_key');
+            }
+            closeKeyModal();
+            updateApiBadge();
+        }
+
+        function clearCustomKey() {
+            localStorage.removeItem('user_gemini_key');
+            document.getElementById('customApiKeyInput').value = '';
+            closeKeyModal();
+            updateApiBadge();
+        }
+
+        function updateApiBadge() {
+            const customKey = localStorage.getItem('user_gemini_key');
+            const hasKey = !!(customKey || GEMINI_API_KEY);
+            const badgeText = document.getElementById('apiStatusText');
+            const badgeDot = document.getElementById('apiStatusDot');
+
+            if (hasKey) {
+                badgeText.innerText = customKey ? "Custom API Active" : "Built-in AI Active";
+                badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+            } else {
+                badgeText.innerText = "Smart Mock Mode";
+                badgeDot.className = "w-2 h-2 rounded-full bg-amber-500";
+            }
+        }
+
+        function toggleFilter(btn) {
+            const filter = btn.dataset.filter;
+            if (activeFilters.has(filter)) {
+                activeFilters.delete(filter);
+                btn.classList.remove('bg-emerald-50 text-emerald-700 border-emerald-500 font-bold');
+                btn.classList.add('bg-white text-slate-600 border-slate-200');
+            } else {
+                activeFilters.add(filter);
+                btn.classList.add('bg-emerald-50 text-emerald-700 border-emerald-500 font-bold');
+                btn.classList.remove('bg-white text-slate-600 border-slate-200');
+            }
+        }
+
+        function setQuickCraving(foodName) {
+            document.getElementById('cravingInput').value = foodName;
+            handleCravingSubmit(new Event('submit'));
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('text-emerald-700', 'bg-white', 'shadow-xs', 'border', 'border-slate-200');
+                b.classList.add('text-slate-600');
+            });
+
+            document.getElementById(`panel-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            activeBtn.classList.add('text-emerald-700', 'bg-white', 'shadow-xs', 'border', 'border-slate-200');
+            activeBtn.classList.remove('text-slate-600');
+        }
+
+        // Main Search Submission
+        async function handleCravingSubmit(e) {
+            e.preventDefault();
+            const craving = document.getElementById('cravingInput').value.trim();
+            if (!craving) return;
+
+            // Show Loading UI
+            document.getElementById('resultContainer').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+
+            const activeKey = localStorage.getItem('user_gemini_key') || GEMINI_API_KEY;
+
+            try {
+                let recipeData;
+                if (activeKey) {
+                    recipeData = await fetchGeminiSwap(craving, activeKey);
+                } else {
+                    // Fallback to Mock Engine
+                    recipeData = getMockSwap(craving);
+                }
+
+                displayRecipeResult(craving, recipeData);
+            } catch (err) {
+                console.warn("Gemini API call unsuccessful or rate-limited. Falling back to Smart Engine:", err);
+                const fallbackData = getMockSwap(craving);
+                displayRecipeResult(craving, fallbackData);
+            } finally {
+                document.getElementById('loadingState').classList.add('hidden');
+            }
+        }
+
+        // Gemini API Query Handler
+        async function fetchGeminiSwap(craving, apiKey) {
+            const filters = Array.from(activeFilters).join(", ");
+            const prompt = `Act as an expert nutritionist and culinary artist. Provide a healthy, delicious, and easy recipe swap for the junk food craving: "${craving}".
+            Dietary restrictions to respect: ${filters || "None"}.
+            
+            Return ONLY a JSON object with this EXACT structure:
+            {
+                "swapName": "Creative Healthy Dish Title",
+                "cravingMatch": "Sentence explaining why texture/flavor satisfies this craving",
+                "prepTime": "e.g. 10 mins",
+                "cookTime": "e.g. 15 mins",
+                "nutriGrade": "A+ Grade",
+                "matchPercent": "95%",
+                "benefits": [
+                    {"title": "Benefit Title 1", "desc": "Short description"},
+                    {"title": "Benefit Title 2", "desc": "Short description"},
+                    {"title": "Benefit Title 3", "desc": "Short description"}
+                ],
+                "ingredients": ["1 cup ingredient A", "2 tbsp ingredient B"],
+                "instructions": ["Step 1 detailed", "Step 2 detailed"],
+                "proTip": "Smart cooking tip for best results"
+            }`;
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API Response Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const textContent = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!textContent) throw new Error("Invalid response content");
+
+            return JSON.parse(textContent);
+        }
+
+        // Offline Mock Engine Handler
+        function getMockSwap(craving) {
+            const key = craving.toLowerCase().trim();
+            for (const [dbKey, swapData] of Object.entries(MOCK_SWAPS_DATABASE)) {
+                if (key.includes(dbKey) || dbKey.includes(key)) {
+                    return { ...swapData, isMock: true };
+                }
+            }
+
+            // Generic smart swap for unlisted cravings
+            return {
+                swapName: `Smart Oven-Baked ${craving.replace(/junk|bad/gi, '')} Swap`,
+                cravingMatch: `Recreates the savory profile and comforting satisfaction of ${craving} using whole food ingredients.`,
+                prepTime: "10 mins",
+                cookTime: "15 mins",
+                nutriGrade: "A Grade",
+                matchPercent: "90%",
+                benefits: [
+                    { title: "Significantly Reduced Sodium", desc: "Flavored with organic herbs and natural spices instead of heavy preservatives." },
+                    { title: "High Fiber & Whole Grain", desc: "Sustains energy level without sugar spikes or brain fog." },
+                    { title: "Clean Wholesome Ingredients", desc: "No artificial dyes, trans fats, or processed fillers." }
+                ],
+                ingredients: [
+                    `2 cups whole food base alternative for ${craving}`,
+                    "1 tbsp extra virgin olive oil or avocado oil spray",
+                    "1/2 tsp sea salt, garlic powder, and black pepper",
+                    "Fresh herbs for garnish"
+                ],
+                instructions: [
+                    "Preheat oven to 400°F (200°C) and line a baking tray with parchment paper.",
+                    `Prepare ingredients by washing and chopping into bite-sized pieces to mimic traditional ${craving}.`,
+                    "Lightly coat with olive oil spray and season with herbs and spices.",
+                    "Bake for 15-18 minutes until crisp and golden brown.",
+                    "Serve warm with a side of Greek yogurt dip!"
+                ],
+                proTip: "Pair with a full glass of cold lemon water to reduce phantom salt cravings!",
+                isMock: true
+            };
+        }
+
+        // Render Output to UI
+        function displayRecipeResult(craving, data) {
+            currentRecipe = { craving, ...data };
+
+            document.getElementById('cravingDisplay').innerText = craving;
+            document.getElementById('swapTitle').innerText = data.swapName;
+            document.getElementById('flavorMatch').innerText = data.cravingMatch;
+            document.getElementById('prepTime').innerText = data.prepTime;
+            document.getElementById('cookTime').innerText = data.cookTime;
+            document.getElementById('nutriBadge').innerText = data.nutriGrade || "A Grade";
+            document.getElementById('matchPercentage').innerText = data.matchPercent || "92% Match";
+            document.getElementById('proTip').innerText = data.proTip;
+            document.getElementById('sourceTag').innerText = data.isMock ? "Smart Demo Engine" : "Gemini AI";
+
+            // Render Benefits
+            const benefitsList = document.getElementById('benefitsList');
+            benefitsList.innerHTML = data.benefits.map(b => `
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">${b.title}</h4>
+                        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">${b.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Render Ingredients
+            document.getElementById('ingredientCount').innerText = `${data.ingredients.length} Items`;
+            const ingredientsList = document.getElementById('ingredientsList');
+            ingredientsList.innerHTML = data.ingredients.map(ing => `
+                <li class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm font-medium text-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    ${ing}
+                </li>
+            `).join('');
+
+            // Render Instructions
+            const instructionsList = document.getElementById('instructionsList');
+            instructionsList.innerHTML = data.instructions.map((step, idx) => `
+                <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <span class="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        ${idx + 1}
+                    </span>
+                    <p class="text-sm text-slate-700 font-medium leading-relaxed">${step}</p>
+                </div>
+            `).join('');
+
+            // Update Bookmark Button state
+            updateSaveButtonState();
+
+            // Show Result Panel and reset tabs to Benefits
+            switchTab('benefits');
+            document.getElementById('resultContainer').classList.remove('hidden');
+            document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Bookmark & Storage Logic
+        function saveCurrentRecipe() {
+            if (!currentRecipe) return;
+
+            const existingIndex = savedRecipes.findIndex(r => r.craving.toLowerCase() === currentRecipe.craving.toLowerCase());
+            if (existingIndex >= 0) {
+                savedRecipes.splice(existingIndex, 1);
+            } else {
+                savedRecipes.push(currentRecipe);
+            }
+
+            localStorage.setItem('craving_swaps', JSON.stringify(savedRecipes));
+            updateSaveButtonState();
+            updateSavedBadge();
+            renderSavedDrawerList();
+        }
+
+        function updateSaveButtonState() {
+            if (!currentRecipe) return;
+            const isSaved = savedRecipes.some(r => r.craving.toLowerCase() === currentRecipe.craving.toLowerCase());
+            const saveBtnText = document.getElementById('saveBtnText');
+            const bookmarkBtn = document.getElementById('bookmarkBtn');
+
+            if (isSaved) {
+                saveBtnText.innerText = "Saved!";
+                bookmarkBtn.classList.add('bg-emerald-600', 'text-white');
+            } else {
+                saveBtnText.innerText = "Save Recipe";
+                bookmarkBtn.classList.remove('bg-emerald-600');
+            }
+        }
+
+        function updateSavedBadge() {
+            const count = savedRecipes.length;
+            const badge = document.getElementById('savedCountBadge');
+            if (count > 0) {
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function toggleSavedDrawer() {
+            const drawer = document.getElementById('savedDrawer');
+            drawer.classList.toggle('hidden');
+            if (!drawer.classList.contains('hidden')) {
+                renderSavedDrawerList();
+            }
+        }
+
+        function renderSavedDrawerList() {
+            const container = document.getElementById('savedList');
+            if (savedRecipes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-bookmark text-4xl mb-3 opacity-30"></i>
+                        <p class="text-sm font-medium">No saved recipes yet.</p>
+                        <p class="text-xs">Saved recipes will appear here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = savedRecipes.map((item, idx) => `
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 hover:border-emerald-300 transition-all cursor-pointer" onclick="loadSavedRecipe(${idx})">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">Swap</span>
+                        <button onclick="event.stopPropagation(); removeSavedRecipe(${idx})" class="text-slate-400 hover:text-red-500 text-xs p-1">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-sm">${item.swapName}</h4>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-1">Replaces: ${item.craving}</p>
+                </div>
+            `).join('');
+        }
+
+        function loadSavedRecipe(idx) {
+            const item = savedRecipes[idx];
+            displayRecipeResult(item.craving, item);
+            toggleSavedDrawer();
+        }
+
+        function removeSavedRecipe(idx) {
+            savedRecipes.splice(idx, 1);
+            localStorage.setItem('craving_swaps', JSON.stringify(savedRecipes));
+            updateSavedBadge();
+            renderSavedDrawerList();
+            updateSaveButtonState();
+        }
+    </script>
+</body>
+</html>
